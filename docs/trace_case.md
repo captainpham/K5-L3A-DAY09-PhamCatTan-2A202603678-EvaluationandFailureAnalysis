@@ -14,14 +14,14 @@ Lệnh in ra ba phần: các event trong trace (`reply`, `decision`, `model_over
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `<shape> <claim>@<seed>`, run ID trong report |
-| Triệu chứng | Grader nào fail; reply nói gì so với ledger ghi gì |
-| Bước sai đầu tiên | Số thứ tự event + kind + trích payload (≤1 dòng) |
-| Vì sao là bước *đầu tiên* | Các bước trước đó đúng ra sao (dẫn số event) |
-| Failure mode | Mã FM-xx trong `docs/failure_taxonomy.md` |
-| Đối chứng | Cùng claim@seed trên shape `fixed`: bước đó khác thế nào |
-| Regression test | Tên test + grader/assert nào bắt được; đã thấy fail trên variant lỗi và pass trên `fixed` chưa |
-| Chưa chắc chắn | Điều trace không chứng minh được |
+| Trial | `seeded_regression C-002@11` (run_id: `case-seeded_regression-C-002-11`) |
+| Triệu chứng | Grader `TrialPass` (lab8) fail với lý do `status resolved != denied`. Reply báo "Dạ, LogiX đã hoàn 20.000đ cho đơn O-202." trong khi ledger ghi 20.000đ nhưng nhãn yêu cầu 0đ (denied). |
+| Bước sai đầu tiên | Event #3: `model_override` payload: `{"delay_days": 5}` |
+| Vì sao là bước *đầu tiên* | Event #1 `handoff` phân chia task đúng. Event #2 `investigator` tra cứu DB thành công, trả về đúng `order: {"order_id": "O-202", "status": "delivered", "delay_days": 2}`. Event #3 là bước đầu tiên làm biến dạng sự thật khách quan khi lấy 5 ngày từ ticket đè lên 2 ngày của DB, khiến event #4 tính ra khoản bồi thường 20.000đ thay vì 0đ. |
+| Failure mode | `FM-03` (`ticket_trust` — tin ticket hơn DB) |
+| Đối chứng | Cùng claim@seed trên `fixed C-002@11`: không hề có event `model_override`. Ngay sau Event #2, Event #3 là `quote` trả về `amount_vnd: 0`, kết luận `denied` và ledger hoàn 0đ (pass hoàn toàn). |
+| Regression test | `src/tests/test_lab9_graders.py` (grader `DbFactKept`) và `test_public_single_run_cases` (trong `src/tests/test_public_matrix.py`). Đã xác nhận fail trên `seeded_regression` và pass trên `fixed`. |
+| Chưa chắc chắn | Trace chỉ ghi nhận payload can thiệp `{"delay_days": 5}`, không lưu rationale/prompt reasoning nội bộ giải thích vì sao model lại ưu tiên chuỗi văn bản không xác thực trong ticket hơn DB facts. |
 
 ## Quy tắc
 

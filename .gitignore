@@ -1,5 +1,11 @@
 __pycache__/
 *.pyc
-src/reports/
 src/traces/
+reports/
+traces/
 *.sqlite
+.venv/
+src/.venv/
+src/reports/traps/
+!src/reports/
+!src/reports/*.json
